@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeartofProtection.org | Global Autonomous Protection</title>
+    
+    <!-- Professional UI Stack -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        
+        :root {
+            --primary: #0f172a;
+            --accent: #2563eb;
+            --bg-main: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-main); 
+            color: #1e293b; 
+            margin: 0; 
+            padding: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+        
+        .hero-bg { 
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.1), transparent),
+                        linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); 
+        }
+
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-shimmer {
+            background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .chat-ai { background: #f1f5f9; border-radius: 0 16px 16px 16px; border: 1px solid #e2e8f0; color: #334155; }
+        .chat-user { background: #2563eb; color: white; border-radius: 16px 16px 0 16px; }
+        
+        .loader { border: 2px solid #f3f4f6; border-top: 2px solid #2563eb; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .timeline-node {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .timeline-node:hover {
+            transform: scale(1.1);
+            background-color: var(--accent);
+            color: white;
+        }
+        .timeline-node.active {
+            background-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Agency Navigation -->
+    <header class="sticky top-0 z-[100] bg-white/95 backdrop-blur-md border-b border-slate-200">
+        <nav class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4 cursor-pointer group" onclick="navigate('home')">
+                <div class="w-11 h-11 bg-blue-700 rounded-xl flex items-center justify-center text-white font-black italic shadow-lg group-hover:scale-105 transition-all">H</div>
+                <div class="flex flex-col text-left">
+                    <span class="text-xl font-black tracking-tighter text-slate-900 leading-none">HeartofProtection<span class="text-blue-600">.org</span></span>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-left">Global Sovereign Defense</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-8 text-sm font-bold text-slate-600">
+                <button onclick="navigate('home')" class="hover:text-blue-600 transition">Portal</button>
+                <button onclick="navigate('timeline')" class="hover:text-blue-600 transition">12-Mo Path</button>
+                <button onclick="navigate('recruit')" class="hover:text-blue-600 transition">Careers</button>
+                <button id="nav-crm" onclick="navigate('crm')" class="hidden px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all">Command Center</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Viewport -->
+    <main id="app-content" class="flex-grow"></main>
+
+    <!-- Intelligence Modal -->
+    <div id="ai-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[300] flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-4 text-left">
+                    <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg">✨</div>
+                    <h3 id="modal-title" class="font-black text-xl text-slate-900 tracking-tight text-left">Intelligence Briefing</h3>
+                </div>
+                <button onclick="closeModal()" class="text-2xl text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+            </div>
+            <div id="modal-body" class="p-10 overflow-y-auto text-slate-700 leading-relaxed text-left text-lg space-y-4"></div>
+            <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal()" class="px-10 py-4 bg-white border border-slate-200 rounded-2xl text-xs font-black text-slate-500 hover:bg-slate-100 transition shadow-sm">Dismiss Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-500 py-12 text-center text-[10px] font-bold uppercase tracking-[0.4em] border-t border-slate-800">
+        © 2026 Heart of Protection Global Agency. All Rights Reserved.
+    </footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- Configuration ---
+    const apiKey = ""; 
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'heart-of-protection';
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwsgLj5YD2jR9a0Wjm2D7qOmqrx3eP4w0",
+      authDomain: "heart-of-protection.firebaseapp.com",
+      projectId: "heart-of-protection",
+      storageBucket: "heart-of-protection.firebasestorage.app",
+      messagingSenderId: "842507493379",
+      appId: "1:842507493379:web:168cc286693b0a5e50ae36"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let currentUser = null;
+    let leadsUnsubscribe = null;
+    let allLeads = [];
+
+    // --- Timeline Data (1-12) ---
+    const sovereignTimeline = [
+        { month: 1, title: "Foundation Launch", desc: "Digital infrastructure live. Sovereign Engine activated in Houston." },
+        { month: 2, title: "Apostolic Alignment", desc: "First 10 agents enrolled in the Houston $1M Academy." },
+        { month: 3, title: "Richmond Advance", desc: "Establishing the East Coast Command Center in Richmond, VA." },
+        { month: 4, title: "The Sovereign Scroll", desc: "Gemini AI Deputy upgrades for automated client underwriting." },
+        { month: 5, title: "Institutional Scaling", desc: "Partnership with the high spiritual authority circle formalized." },
+        { month: 6, title: "Half-Year Milestone", desc: "Mid-year review: $500k agency production volume target reached." },
+        { month: 7, title: "The Open Door", desc: "Expansion into international life shield markets (Global Sovereignty)." },
+        { month: 8, title: "Legacy Annuities", desc: "Launch of the custom Annuity Architect training module." },
+        { month: 9, title: "The Richmond Hub", desc: "Full physical facility activation in Richmond City Center." },
+        { month: 10, title: "Leadership Summit", desc: "Apostolic Council of Agents gathering in Houston." },
+        { month: 11, title: "The $1M Blueprint", desc: "Final sprint to the million-dollar agency production mark." },
+        { month: 12, title: "Sovereign Victory", desc: "Annual report released. The Blueprint becomes a Global Mandate." }
+    ];
+
+    // --- Auth Initialization ---
+    async function startAgencyEngine() {
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else { await signInAnonymously(auth); }
+        } catch (e) { await signInAnonymously(auth); }
+    }
+    startAgencyEngine();
+
+    onAuthStateChanged(auth, u => { 
+        currentUser = u; 
+        if (u) {
+            document.getElementById('nav-crm')?.classList.remove('hidden');
+            navigate('home');
+        }
+    });
+
+    const getLeadsRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'leads');
+
+    // --- Gemini AI Bridge ---
+    async function askGemini(prompt, systemInstruction = "You are the Lead Global Advisor for HeartofProtection.org. Provide elite, high-level protection advice.") {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+        try {
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await res.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "Communication timeout from Sovereign Intelligence.";
+        } catch (err) { return "AI Deputy is momentarily offline. Synchronizing..."; }
+    }
+
+    // --- Core Navigation ---
+    window.navigate = (page) => {
+        const content = document.getElementById('app-content');
+        if (!content) return;
+        window.location.hash = page;
+
+        if (page === 'home' || page === '') {
+            renderHome(content);
+        } else if (page === 'crm') {
+            renderCRM(content);
+        } else if (page === 'recruit') {
+            renderRecruit(content);
+        } else if (page === 'timeline') {
+            renderTimeline(content);
+        }
+    };
+
+    function renderHome(container) {
+        container.innerHTML = `
+            <section class="hero-bg py-24 text-center text-white px-6 fade-in">
+                <div class="max-w-7xl mx-auto">
+                    <h1 class="text-7xl font-black mb-8 tracking-tighter leading-[1.1]">Your Legacy, <br><span class="text-blue-400">Secured & AI-Driven.</span></h1>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16 text-left items-stretch">
+                        
+                        <div class="bg-white p-12 rounded-[3.5rem] text-slate-950 shadow-2xl border border-slate-100 flex flex-col transition-all hover:shadow-blue-500/10">
+                            <h3 class="text-2xl font-black mb-6 tracking-tight">Sovereign Enrollment</h3>
+                            <form id="enroll-form" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input type="text" id="l-name" placeholder="Full Name" required class="w-full p-5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-blue-600 transition-all font-medium">
+                                    <input type="email" id="l-email" placeholder="Email Address" required class="w-full p-5 rounded-2xl bg-slate-50 border border-slate-100 outline-none focus:ring-2 focus:ring-blue-600 transition-all font-medium">
+                                </div>
+                                <textarea id="l-notes" placeholder="Describe your protection vision or financial hurdles..." required class="w-full p-5 rounded-3xl bg-slate-50 border border-slate-100 h-32 outline-none focus:ring-2 focus:ring-blue-600 transition-all font-medium"></textarea>
+                                <button type="submit" class="w-full btn-shimmer text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all">Submit for Analysis ✨</button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-slate-900/40 backdrop-blur-2xl p-10 rounded-[3.5rem] border border-white/10 flex flex-col h-full shadow-2xl">
+                            <h3 class="text-xl font-bold mb-6 flex items-center gap-3 text-white">🤖 AI Deputy Concierge</h3>
+                            <div id="chat-stream" class="flex-grow space-y-4 overflow-y-auto max-h-[350px] mb-6 text-sm text-slate-300 scrollbar-hide">
+                                <div class="chat-ai p-5 text-slate-700 glass font-medium">Greetings. I am the AI Deputy. I can process complex insurance modeling in seconds. How can I serve your legacy today?</div>
+                            </div>
+                            <div class="relative mt-auto">
+                                <input type="text" id="chat-input" placeholder="Ask about Life Shield or Annuities..." class="w-full p-5 pr-16 bg-white/10 rounded-2xl text-white outline-none border border-white/10 focus:border-blue-500 transition-all font-medium">
+                                <button id="chat-btn" class="absolute right-2 top-2 w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white hover:bg-blue-500 shadow-lg transition-all">✨</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        `;
+        document.getElementById('enroll-form').onsubmit = handleEnrollment;
+        document.getElementById('chat-btn').onclick = handleChat;
+    }
+
+    function renderRecruit(container) {
+        container.innerHTML = `
+            <section class="py-24 px-6 max-w-4xl mx-auto text-center fade-in">
+                <span class="text-blue-600 font-black uppercase tracking-[0.4em] text-[10px]">Elite Coaching Division</span>
+                <h2 class="text-5xl font-black text-slate-900 mt-4 mb-12 tracking-tighter text-left">Join the Sovereign Agency.</h2>
+                <div class="bg-white p-12 rounded-[4rem] shadow-2xl text-left border border-slate-100">
+                    <form id="recruit-form" class="space-y-6">
+                        <input type="text" id="r-name" placeholder="Full Name" required class="w-full p-5 rounded-2xl bg-slate-50 border border-slate-100 outline-none font-medium">
+                        <textarea id="r-notes" placeholder="Describe your career goals for the next 12 months..." required class="w-full p-5 rounded-3xl bg-slate-50 border border-slate-100 h-40 outline-none font-medium"></textarea>
+                        <button type="submit" class="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all">✨ Run Career Simulation</button>
+                    </form>
+                </div>
+            </section>
+        `;
+        document.getElementById('recruit-form').onsubmit = handleRecruitSubmit;
+    }
+
+    function renderCRM(container) {
+        container.innerHTML = `
+            <div class="max-w-7xl mx-auto p-12 fade-in">
+                <div class="flex justify-between items-center mb-12 text-left">
+                    <h2 class="text-5xl font-black text-slate-900 tracking-tighter">Command Center.</h2>
+                    <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full border border-emerald-100">
+                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span class="text-[10px] font-black uppercase tracking-widest">Global Link Active</span>
+                    </div>
+                </div>
+                <div id="leads-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="col-span-full py-20 text-center"><div class="loader mx-auto mb-4"></div><p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Syncing Client Dossiers...</p></div>
+                </div>
+            </div>
+        `;
+        loadLeads();
+    }
+
+    function renderTimeline(container) {
+        container.innerHTML = `
+            <section class="py-24 px-6 max-w-6xl mx-auto text-center fade-in">
+                <span class="text-blue-600 font-black uppercase tracking-[0.4em] text-[10px]">The Sovereign Path</span>
+                <h2 class="text-5xl font-black text-slate-900 mt-4 mb-6 tracking-tighter">Strategic 12-Month Expansion</h2>
+                <p class="text-slate-500 font-medium mb-16 max-w-2xl mx-auto">Select a month to reveal the tactical milestones of our global mandate.</p>
+                
+                <div class="flex flex-wrap justify-center gap-4 mb-16">
+                    ${sovereignTimeline.map(item => `
+                        <button onclick="selectTimeline(${item.month})" class="timeline-node w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-slate-800 shadow-sm" id="node-${item.month}">
+                            ${item.month}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <div id="timeline-detail" class="bg-white p-12 rounded-[3.5rem] shadow-2xl border border-slate-100 text-left max-w-3xl mx-auto min-h-[250px] flex flex-col justify-center">
+                    <div class="text-center text-slate-400 font-bold uppercase tracking-widest">Select a month to begin analysis.</div>
+                </div>
+            </section>
+        `;
+        selectTimeline(1);
+    }
+
+    window.selectTimeline = (month) => {
+        const item = sovereignTimeline.find(i => i.month === month);
+        const detail = document.getElementById('timeline-detail');
+        const allNodes = document.querySelectorAll('.timeline-node');
+        
+        allNodes.forEach(n => n.classList.remove('active'));
+        document.getElementById(`node-${month}`).classList.add('active');
+
+        detail.innerHTML = `
+            <div class="fade-in text-left">
+                <div class="flex items-center gap-6 mb-6">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center text-2xl font-black shadow-inner">${item.month}</div>
+                    <div>
+                        <h4 class="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-1">Strategic Milestone</h4>
+                        <h3 class="text-3xl font-black text-slate-900 tracking-tight">${item.title}</h3>
+                    </div>
+                </div>
+                <p class="text-xl text-slate-600 leading-relaxed font-medium text-left">${item.desc}</p>
+            </div>
+        `;
+    };
+
+    // --- Action Logic ---
+    async function handleChat() {
+        const input = document.getElementById('chat-input');
+        const stream = document.getElementById('chat-stream');
+        if (!input.value.trim()) return;
+        
+        const msg = input.value;
+        stream.innerHTML += `<div class="chat-user p-5 ml-12 text-right mb-4 shadow-md font-medium text-sm transition-all animate-pulse">${msg}</div>`;
+        input.value = '';
+        stream.scrollTop = stream.scrollHeight;
+
+        const response = await askGemini(msg, "You are the Agency AI Deputy. Provide expert insurance and legacy protection advice. Direct users to enroll.");
+        stream.innerHTML += `<div class="chat-ai p-5 mr-12 mb-4 bg-white shadow-sm text-slate-600 leading-relaxed border border-slate-100 text-left">${response}</div>`;
+        stream.scrollTop = stream.scrollHeight;
+    }
+
+    async function handleEnrollment(e) {
+        e.preventDefault();
+        const n = document.getElementById('l-name').value;
+        const e_mail = document.getElementById('l-email').value;
+        const notes = document.getElementById('l-notes').value;
+        
+        openModal("✨ Analyzing Vision", `Gemini is processing enrollment for <strong>${n}</strong>...`);
+        const summary = await askGemini(notes, "You are a Senior Underwriter. Summarize the lead and provide 3 tactical insurance tips for them.");
+        
+        await addDoc(getLeadsRef(), { 
+            name: n, email: e_mail, notes: notes, 
+            ai_summary: summary, type: 'Client', 
+            status: 'New', createdAt: serverTimestamp(), uid: currentUser.uid 
+        });
+        
+        openModal("Enrollment Successful", summary);
+        e.target.reset();
+    }
+
+    async function handleRecruitSubmit(e) {
+        e.preventDefault();
+        const n = document.getElementById('r-name').value;
+        const notes = document.getElementById('r-notes').value;
+        
+        openModal("✨ Simulating Coaching Path", "Mapping your background to the $1M Houston Academy tracks...");
+        const simulation = await askGemini(notes, "Suggest an agency track (Closer, Architect, or Guardian) based on these goals.");
+        
+        await addDoc(getLeadsRef(), { 
+            name: n, notes: notes, 
+            ai_summary: simulation, type: 'Recruit', 
+            status: 'Applied', createdAt: serverTimestamp(), uid: currentUser.uid 
+        });
+        
+        openModal("Simulation Complete", simulation);
+        e.target.reset();
+    }
+
+    function loadLeads() {
+        onSnapshot(query(getLeadsRef()), (snap) => {
+            const grid = document.getElementById('leads-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            allLeads = [];
+            snap.forEach(d => allLeads.push({ id: d.id, ...d.data() }));
+            
+            if (allLeads.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No dossiers found.</div>`;
+                return;
+            }
+
+            allLeads.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+            
+            allLeads.forEach(lead => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl transition-all flex flex-col justify-between group";
+                card.innerHTML = `
+                    <div class="text-left">
+                        <div class="flex justify-between items-start mb-4">
+                            <h4 class="font-black text-2xl text-slate-900">${lead.name}</h4>
+                            <span class="text-[9px] font-bold px-2 py-1 bg-blue-50 text-blue-600 rounded uppercase tracking-widest">${lead.type || 'Client'}</span>
+                        </div>
+                        <p class="text-sm text-slate-500 italic line-clamp-2 mb-6 text-left">"${lead.notes}"</p>
+                    </div>
+                    <button onclick="viewLead('${lead.id}')" class="w-full py-4 bg-slate-50 text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest group-hover:bg-blue-600 group-hover:text-white transition-all">Review AI Dossier ✨</button>
+                `;
+                grid.appendChild(card);
+            });
+        });
+    }
+
+    window.viewLead = (id) => {
+        const lead = allLeads.find(l => l.id === id);
+        openModal(`${lead.name}: Intelligence Briefing`, `<div class="text-slate-700 leading-relaxed font-medium text-left">${lead.ai_summary || 'Analysis pending...'}</div>`);
+    };
+
+    window.openModal = (t, c) => { 
+        document.getElementById('modal-title').innerText = t; 
+        document.getElementById('modal-body').innerHTML = c; 
+        document.getElementById('ai-modal').classList.remove('hidden'); 
+    };
+    window.closeModal = () => document.getElementById('ai-modal').classList.add('hidden');
+
+    window.onload = () => navigate('home');
+</script>
+</body>
+</html>
