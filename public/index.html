@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart of Protection | Global Sovereign Defense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // VERIFIED CREDENTIALS FROM YOUR FIREBASE CONSOLE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwsGLj5YD2jR9aOwjm2D7qOmqrx3eP4w0",
+            authDomain: "heart-of-protection.firebaseapp.com",
+            projectId: "heart-of-protection",
+            storageBucket: "heart-of-protection.firebasestorage.app",
+            messagingSenderId: "842507493379",
+            appId: "1:842507493379:web:168cc286693b0a5e50ae36"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = "heart-of-protection";
+
+        window.state = { user: null, leads: [] };
+
+        signInAnonymously(auth).catch(console.error);
+        onAuthStateChanged(auth, (user) => {
+            window.state.user = user;
+            if (user) {
+                const leadsRef = collection(db, 'artifacts', appId, 'public', 'data', 'leads');
+                onSnapshot(leadsRef, (snapshot) => {
+                    window.state.leads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const container = document.getElementById('leads-list');
+                    if (container) {
+                        container.innerHTML = window.state.leads.map(l => `
+                            <div class="p-4 border-b border-gray-800 flex justify-between items-center hover:bg-white/5 transition">
+                                <div><p class="font-bold text-red-500">${l.name}</p><p class="text-[10px] text-gray-400 uppercase tracking-widest">${l.interest || 'General'}</p></div>
+                                <div class="text-[10px] text-gray-600">${new Date(l.timestamp).toLocaleDateString()}</div>
+                            </div>
+                        `).join('') || '<div class="p-8 text-center text-gray-700 italic">Awaiting leads...</div>';
+                    }
+                });
+            }
+        });
+
+        window.submitLead = async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            data.timestamp = new Date().toISOString();
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'leads'), data);
+                alert("Dossier submitted to Command Center.");
+                e.target.reset();
+            } catch (err) { alert("Submission failed."); }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #e5e5e5; scroll-behavior: smooth; }
+        .cinzel { font-family: 'Cinzel', serif; }
+        .gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #f9e29b 50%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="fixed w-full z-50 glass py-4 px-8 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-red-900 rounded-full flex items-center justify-center border border-red-500 shadow-[0_0_15px_rgba(220,38,38,0.4)]">
+                <span class="cinzel text-xl font-bold text-white">H</span>
+            </div>
+            <span class="cinzel text-lg tracking-widest font-bold text-white uppercase">Heart of Protection</span>
+        </div>
+        <div class="flex space-x-8 text-[10px] tracking-[0.2em] font-bold text-gray-400">
+            <a href="#leads" class="hover:text-red-500 transition">COMMAND CENTER</a>
+        </div>
+    </nav>
+
+    <section class="relative pt-48 pb-20 px-4 text-center">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10"></div>
+        <div class="relative z-10">
+            <div class="mb-6 inline-block px-4 py-1 border border-red-900/50 rounded-full text-[10px] tracking-[0.3em] text-red-500 uppercase font-bold">Apostolic Defense Protocol Active</div>
+            <h1 class="cinzel text-6xl md:text-9xl font-bold mb-8 gold-gradient leading-[0.85] uppercase">The Sovereign Advance</h1>
+            <p class="text-lg md:text-2xl text-gray-400 font-light mb-12 tracking-widest uppercase">Elite Legacy Defense • AI Wealth Protection</p>
+            <button onclick="document.getElementById('leads').scrollIntoView()" class="px-12 py-5 bg-red-800 hover:bg-red-700 text-white font-bold tracking-widest transition uppercase text-xs rounded shadow-2xl">Initialize Dossier</button>
+        </div>
+    </section>
+
+    <section id="leads" class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 py-20">
+        <div class="glass p-10 rounded-2xl border border-red-900/20">
+            <h2 class="cinzel text-3xl mb-8 text-red-500">Initialize Dossier</h2>
+            <form onsubmit="submitLead(event)" class="space-y-6">
+                <input name="name" required class="w-full bg-white/5 border border-white/10 p-4 rounded text-white focus:border-red-600 outline-none" placeholder="FULL LEGAL NAME">
+                <input name="email" required type="email" class="w-full bg-white/5 border border-white/10 p-4 rounded text-white focus:border-red-600 outline-none" placeholder="EMAIL ADDRESS">
+                <select name="interest" class="w-full bg-white/5 border border-white/10 p-4 rounded text-gray-400 focus:border-red-600 outline-none">
+                    <option>Life Shields</option>
+                    <option>Annuities</option>
+                    <option>Houston Academy</option>
+                </select>
+                <button type="submit" class="w-full py-4 bg-red-800 hover:bg-red-700 text-white font-bold uppercase tracking-widest transition rounded shadow-xl">Transmit to Command</button>
+            </form>
+        </div>
+        <div class="glass rounded-2xl border border-white/5 flex flex-col h-[500px]">
+            <div class="p-4 border-b border-white/5 cinzel text-[10px] text-red-500 tracking-widest uppercase font-bold flex justify-between items-center">
+                <span>Apostolic Command Center</span>
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            </div>
+            <div id="leads-list" class="flex-grow overflow-y-auto p-2"></div>
+        </div>
+    </section>
+
+    <footer class="py-20 text-center border-t border-white/5 opacity-50">
+        <div class="cinzel text-xl gold-gradient uppercase tracking-widest mb-4">Heart of Protection</div>
+        <p class="text-[9px] tracking-[0.5em] text-gray-600 uppercase">Houston • Global Sovereign Advance</p>
+    </footer>
+
+    <button class="fixed bottom-8 right-8 w-16 h-16 bg-red-800 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition border border-red-500/50">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+    </button>
+</body>
+</html>
