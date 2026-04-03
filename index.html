@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart of Protection | Global Sovereign Defense</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // VERIFIED CREDENTIALS
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwsGLj5YD2jR9aOwjm2D7qOmqrx3eP4w0",
+            authDomain: "heart-of-protection.firebaseapp.com",
+            projectId: "heart-of-protection",
+            storageBucket: "heart-of-protection.firebasestorage.app",
+            messagingSenderId: "842507493379",
+            appId: "1:842507493379:web:168cc286693b0a5e50ae36"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = "heart-of-protection";
+
+        // Initial Auth
+        signInAnonymously(auth).catch(console.error);
+
+        // Logic for Dossier Feed
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const leadsRef = collection(db, 'artifacts', appId, 'public', 'data', 'leads');
+                onSnapshot(leadsRef, (snapshot) => {
+                    const leads = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const list = document.getElementById('leads-list');
+                    if (list) {
+                        list.innerHTML = leads.reverse().map(l => `
+                            <div class="p-4 border-b border-white/5 hover:bg-white/5 transition flex justify-between items-center">
+                                <div>
+                                    <p class="text-red-500 font-bold">${l.name}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">${l.interest || 'Protection Inquiry'}</p>
+                                </div>
+                                <div class="text-[9px] text-gray-700 font-mono">${new Date(l.timestamp).toLocaleTimeString()}</div>
+                            </div>
+                        `).join('') || '<p class="p-8 text-center text-gray-600 italic text-sm">Awaiting secure signal...</p>';
+                    }
+                });
+            }
+        });
+
+        // Form Submission
+        window.submitDossier = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "TRANSMITTING...";
+            
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                interest: formData.get('interest'),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'leads'), data);
+                e.target.reset();
+                btn.innerText = "SIGNAL RECEIVED";
+                setTimeout(() => btn.innerText = originalText, 3000);
+            } catch (error) {
+                btn.innerText = "BLOCK DETECTED";
+                console.error("Transmission failed", error);
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #e5e5e5; scroll-behavior: smooth; }
+        .cinzel { font-family: 'Cinzel', serif; }
+        .gold-text { background: linear-gradient(135deg, #d4af37 0%, #f9e29b 50%, #d4af37 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass py-4 px-8 border-b border-white/5 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-red-950 rounded-full flex items-center justify-center border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.3)]">
+                <span class="cinzel text-xl font-bold text-white">H</span>
+            </div>
+            <span class="cinzel text-sm tracking-[0.3em] font-bold text-white uppercase hidden md:block">Heart of Protection</span>
+        </div>
+        <div class="text-[10px] tracking-widest text-red-500 animate-pulse font-bold">SECURE LINK ACTIVE</div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="relative pt-60 pb-32 px-6 text-center">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="cinzel text-5xl md:text-8xl font-bold mb-6 gold-text tracking-tighter uppercase leading-none">The Sovereign Advance</h1>
+            <p class="text-gray-500 text-lg md:text-xl tracking-[0.4em] uppercase font-light mb-12">Elite Legacy & Strategic Life Defense</p>
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <main class="max-w-7xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Form Section -->
+        <div class="glass p-10 rounded-2xl">
+            <h2 class="cinzel text-2xl text-red-500 mb-8 tracking-widest uppercase border-b border-red-900/30 pb-4">Initialize Dossier</h2>
+            <form onsubmit="submitDossier(event)" class="space-y-6">
+                <input name="name" required placeholder="FULL NAME" class="w-full bg-white/5 border border-white/10 p-4 rounded text-white outline-none focus:border-red-600 transition-all">
+                <input name="email" type="email" required placeholder="SECURE EMAIL" class="w-full bg-white/5 border border-white/10 p-4 rounded text-white outline-none focus:border-red-600 transition-all">
+                <select name="interest" class="w-full bg-white/5 border border-white/10 p-4 rounded text-gray-400 outline-none focus:border-red-600">
+                    <option>Life Shields</option>
+                    <option>Legacy Annuities</option>
+                    <option>Academy Enrollment</option>
+                </select>
+                <button type="submit" class="w-full py-4 bg-red-900/40 border border-red-600 text-red-500 font-bold uppercase tracking-[0.3em] hover:bg-red-600 hover:text-white transition-all shadow-lg">Transmit to Command</button>
+            </form>
+        </div>
+
+        <!-- Feed Section -->
+        <div class="glass p-0 rounded-2xl overflow-hidden flex flex-col h-[500px]">
+            <div class="p-4 border-b border-white/10 bg-red-950/20 flex justify-between items-center">
+                <span class="cinzel text-[10px] tracking-widest text-red-500 font-bold uppercase">Apostolic Command Center</span>
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+            </div>
+            <div id="leads-list" class="flex-grow overflow-y-auto p-2">
+                <p class="p-8 text-center text-gray-700 italic text-sm">Searching for orbital link...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-20 text-center opacity-20 mt-20 border-t border-white/5">
+        <p class="cinzel text-[8px] tracking-[0.8em] uppercase">Sovereign Grade Security. Protected by Truth.</p>
+    </footer>
+</body>
+</html>
